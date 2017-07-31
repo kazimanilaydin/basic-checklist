@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title id="title">Basic Check List</title>
+		<meta charset="UTF-8">
+	    <meta name="viewport" content="width=device-width, initial-scale = 1.0, maximum-scale=1.0, user-scalable=no">
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<script type="text/javascript" src="./vue.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="./bulma.min.css">
+	</head>
+	<body>
+		<div id="app">
+			<div class="tabs is-boxed">
+				<ul>
+					<li v-bind:class="[isActive == 0 ? 'is-active' : '']" v-on:click="showForm(0)"><a>{{label.tabs.tab1}}</a></li>
+				    <li v-bind:class="[isActive == 1 ? 'is-active' : '']" v-on:click="showForm(1)"><a>{{label.tabs.tab2}}</a></li>
+				    <li v-bind:class="[isActive == 2 ? 'is-active' : '']" v-on:click="showForm(2)"><a>{{label.tabs.tab3}}</a></li>
+				</ul>
+			</div>
+		  	<ul class="questions">
+				<div style="margin-top:-5px;padding:0 10px 10px;">
+					<label class="label-for-item">
+					    <b>{{label.note}}:</b>
+					</label>
+					<textarea class="input _clearValue" v-on:input="_comment" type="text" v-text="" :placeholder="label.addInfo"></textarea>
+				</div>
+		    	<li class="question" :id="'question-' + index + '-' + isActive" v-for="(form, index) of forms">
+		      		<div class="question-head">{{ index + 1 }}. {{ form[0] }}</div>
+		      		<div class="columns">
+			      		<div class="column is-6">
+							<input :id="isActive + '-option-1-' + index" v-on:click="toggle" type="checkbox" :checked="false" class="radio yes" :name="isActive + '-optionsRadios-' + index" value="yes">
+							<label :for="isActive + '-option-1-' + index" class="label-for-item">
+					    		{{label.options.yes}}
+					    	</label>
+			      		</div>
+			      		<div class="column is-6">
+				      		<input :id="isActive + '-option-2-' + index" v-on:click="toggle" type="checkbox" :checked="false" class="radio no" :name="isActive + '-optionsRadios-' + index" value="no">
+					    		<label :for="isActive + '-option-2-' + index" class="label-for-item">
+					    		{{label.options.no}}
+					    	</label>
+			      		</div>
+		      		</div>
+				    <textarea :id="isActive + '-text-' + index" class="input comment hideForprint" v-on:input="_comment" type="text" v-text="" :name="isActive + '-textAreas-' + index" :placeholder="label.addComment"></textarea>
+				</li>
+			</ul>
+		</div>
+
+		<script type="text/javascript">
+
+			window.addEventListener('load', function(){
+
+				function autoSize(el){
+
+					var target = el;
+
+					target = (typeof el == 'undefined') ? document.querySelector('textarea') : el;
+
+					target.addEventListener('keydown', autoSize);
+						      
+					function autoSize(){
+					  	var el = this;
+						setTimeout(function(){
+						    el.style.cssText = 'height:auto;';
+						    el.style.cssText = 'height:' + el.scrollHeight + 'px';
+						    el.style.cssText += 'overflow-y: hidden;';
+						},0);
+					}	
+				}
+
+				var _app = new Vue({
+					el: '#app',
+					mounted() {
+						autoSize();
+					},
+					computed: {
+						hiddenprint() {
+							return true;
+						},
+						forms() {
+
+							var active = this.isActive;
+							var titleName = "";
+							var forms = [];
+
+							switch(active){
+								case 0: forms = this.form_1; titleName= this.label.titles.title1; break;
+								case 1: forms = this.form_2; titleName= this.label.titles.title2; break;
+								case 2: forms = this.form_3; titleName= this.label.titles.title3; break;
+								default: forms = []; break;
+							}
+
+							this.titleName = titleName;
+							var title = document.getElementById("title");
+							var _title = this.label.title;
+
+							title.text = `${_title} - ${titleName}`;
+
+							var t = document.getElementsByClassName("comment");
+							
+							for (var i = 0; i < t.length; i++) {
+							    t[i].value = "";
+							}
+
+							var _clearValue = document.getElementsByClassName("_clearValue");
+							
+							for (var i = 0; i < _clearValue.length; i++) {
+							    _clearValue[i].value = "";
+							}
+
+							return forms;
+						}
+					},
+					methods: {
+
+						_comment(e){
+      						if(e.target.value){
+      							e.target.classList.remove("hideForprint");
+      						}else{
+      							e.target.classList.add("hideForprint");
+      						}
+						},
+
+						toggle(e){
+
+							var _target = "";
+							var _classNames = e.target.getAttribute("class").split(" ");
+
+							for (var i = 0; i < _classNames.length; i++) {
+
+								if(_classNames[i] == "yes"){
+									_target = "1";
+									break;
+								}else if(_classNames[i] == "no") {
+									_target = "2";
+									break;
+								}
+
+							}
+
+							if (_target == "1"){
+
+								var targetNode = e.target;
+								var alternativeNode = e.target.parentNode.parentNode.lastElementChild.childNodes[0];
+
+								if (alternativeNode.checked == true) {
+									alternativeNode.checked = false;
+								}
+
+							}else if(_target == "2"){
+
+								var targetNode = e.target.checked;
+								var alternativeNode = e.target.parentNode.parentNode.firstElementChild.childNodes[0];
+
+								if (alternativeNode.checked == true) {
+									alternativeNode.checked = false;
+								}
+							}
+
+							// e.preventDefault();
+						},
+
+						showForm(e) {
+
+							this.isActive = e;
+							return false;
+						},
+					},
+					data: {
+						isActive: 0,
+						titleName: "",
+						label: {
+							addInfo: "Add Info",
+							addComment: "Add Comment",
+							title: "Basic Check List",
+							note: "Note",
+							options: {
+								yes: "True",
+								no: "False",
+							},
+							tabs: {
+								tab1: "Check List 1",
+								tab2: "Check List 2",
+								tab3: "Check List 3",
+							},
+							titles:{
+								title1: "Form 1",
+								title2: "Form 2",
+								title3: "Form 3",
+							}
+						},
+						form_1: [
+						  ["QUESTION 1?"],
+						  ["QUESTION 2?"],
+						  ["QUESTION 3?"],
+						  ["QUESTION 4?"],
+						  ["QUESTION 5?"],
+						  ["QUESTION 6?"],
+						  ["QUESTION 7?"],
+						  ["QUESTION 8?"],
+						  ["QUESTION 9?"],
+						  ["QUESTION 10?"],
+						],
+						form_2: [
+						  ["QUESTION 1?"],
+						  ["QUESTION 2?"],
+						  ["QUESTION 3?"],
+						  ["QUESTION 4?"],
+						  ["QUESTION 5?"],
+						  ["QUESTION 6?"],
+						  ["QUESTION 7?"],
+						  ["QUESTION 8?"],
+						  ["QUESTION 9?"],
+						  ["QUESTION 10?"],
+						],
+						form_3: [
+					      ["QUESTION 1?"],
+						  ["QUESTION 2?"],
+						  ["QUESTION 3?"],
+						  ["QUESTION 4?"],
+						  ["QUESTION 5?"],
+						  ["QUESTION 6?"],
+						  ["QUESTION 7?"],
+						  ["QUESTION 8?"],
+						  ["QUESTION 9?"],
+						  ["QUESTION 10?"],
+						],
+					},
+				});
+			});
+
+		</script>
+
+		<style type="text/css">
+
+			@media print {
+			  .hideForprint {
+			    display: none !important;
+			  }
+			}
+
+			@media (max-width: 768px){
+				.comment{
+					margin-top: 15px !important;
+				}
+			}
+
+			._clearValue{
+
+				margin-top:5px !important;
+				padding:5px;
+				min-height: 32px;
+				border: 1px solid #ccc;
+				width: 100% !important;
+			}
+		
+			.question{
+				padding:10px;
+				border:1px solid #ccc;
+				margin-top:-1px;
+			}
+
+			.question-head{
+				padding:5px;
+				font-weight: bolder;
+			}
+
+			.comment{
+				margin-top:-5px;
+				padding:5px;
+				min-height: 32px;
+				border: 1px solid #ccc;
+				width: 100% !important;
+			}
+
+			._true{
+				color: #00a091;
+			}
+
+			._false{
+				color: #d13a2f;
+			}
+
+			.label-for-item{
+				width: 100%;
+				margin-top: 1em !important;
+			}
+
+			.radio.yes, .radio.no{
+				transition: all 1s linear;
+			}
+
+			input.radio:empty {
+				display: none;
+				margin-left: -999px;
+			}
+
+			input.radio:empty ~ label {
+				position: relative;
+				float: left;
+				line-height: 2.5em;
+				text-indent: 3.25em;
+				margin-top: 2em;
+				cursor: pointer;
+				-webkit-user-select: none;
+				-moz-user-select: none;
+				-ms-user-select: none;
+				user-select: none;
+			}
+
+			input.radio:empty ~ label:before {
+				position: absolute;
+				display: block;
+				top: 0;
+				bottom: 0;
+				left: 0;
+				content: '';
+				width: 2.5em;
+				background: #D1D3D4;
+				border-radius: 50%;
+			}
+
+			input.radio:hover:not(:checked) ~ label:before {
+				content:'\2714';
+				text-indent: .9em;
+				color: #C2C2C2;
+			}
+
+			input.radio:hover:not(:checked) ~ label {
+				color: #888;
+			}
+
+			input.radio:checked ~ label:before {
+				content:'\2714';
+				text-indent: .9em;
+				color: #f0f0f0;
+				background-color: #00a091;
+			}
+
+			input.radio.no:checked ~ label {
+				color: #d13a2f;
+			}
+
+			input.radio:checked ~ label {
+				color: #00a091;
+			}
+
+			input.radio:focus ~ label:before {
+				box-shadow: 0 0 0 3px #999;
+			}
+
+			input.radio.no:checked ~ label:before {
+				content:'\2717';
+			}
+
+			input.radio.no:checked ~ label:before {
+				content:'\2717';
+				background-color: #d13a2f;;
+			}
+
+			input.radio.no:hover:not(:checked) ~ label:before {
+				content:'\2717';
+			}
+
+		</style>
+	</body>
+</html>
